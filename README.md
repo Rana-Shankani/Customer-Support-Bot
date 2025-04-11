@@ -77,7 +77,7 @@ DEFAULT_LLM_MODEL=google/flan-t5-large
 ## 🧩 Project Structure
 
 ```
-rag-customer-support/
+customer-support-bot/
 ├── app.py                  # Main application
 ├── requirements.txt        # Dependencies
 ├── src/                    # Source code

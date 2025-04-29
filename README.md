@@ -1,36 +1,36 @@
 # RAG Customer Support Chatbot
 
 ![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)
-![LangChain](https://img.shields.io/badge/LangChain-0.3.22+-green.svg)
-![FAISS](https://img.shields.io/badge/FAISS-1.10.0+-orange.svg)
-![Flask](https://img.shields.io/badge/Flask-2.0.1+-lightgrey.svg)
-![License](https://img.shields.io/badge/License-MIT-yellow.svg)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.100.0+-green.svg)
+![LangChain](https://img.shields.io/badge/LangChain-0.1.0+-orange.svg)
+![HuggingFace](https://img.shields.io/badge/HuggingFace-Free_Models-yellow.svg)
+![License](https://img.shields.io/badge/License-MIT-lightgrey.svg)
 
-A production-ready customer support chatbot that uses Retrieval Augmented Generation (RAG) to answer questions based on your product documentation.
+A customer support chatbot that uses Retrieval Augmented Generation (RAG) to answer q
+uestions based on a JSON knowledge base.
 
-![RAG Chatbot Demo](https://user-images.githubusercontent.com/your-username/your-repo/raw/main/docs/images/demo.gif)
+## Features
 
-## 🌟 Features
+- **JSON Knowledge Base**: Easy to update and maintain FAQ format
+- **Automatic Chunking**: Smart text splitting for better context retrieval
+- **Vector Search**: Fast semantic search of knowledge base
+- **AI-Powered Answers**: Generate precise answers using free LLMs
+- **Modern UI**: Responsive chat interface with typing indicators
+- **Configuration**: Flexible configuration via environment variables
+- **FastAPI Backend**: High-performance API for chat interactions
 
-- 📄 **Document Processing**: Upload PDFs and text files
-- ✂️ **Automatic Chunking**: Smart text splitting for better context retrieval
-- 🔍 **Vector Search**: FAISS-powered semantic search
-- 🤖 **AI-Powered Answers**: Generate precise answers using LLMs
-- 🌐 **Web Interface**: Easy-to-use chat interface for non-technical users
-
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
 - Python 3.8+
-- A HuggingFace API token
 
 ### Installation
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/rag-customer-support-chatbot.git
-cd rag-customer-support-chatbot
+git clone https://github.com/Rana-Shankani/Customer-Support-Bot.git
+cd customer-support-bot
 
 # Create and activate virtual environment
 python -m venv venv
@@ -38,77 +38,121 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
-
-# Set up environment variables
-cp .env.example .env
-# Edit .env with your HuggingFace API token
 ```
 
 ### Running the Application
 
 ```bash
-python app.py
+# Start the FastAPI server
+uvicorn app:app --reload
 ```
 
-Then open your browser and navigate to [http://127.0.0.1:5000](http://127.0.0.1:5000)
+Then open your browser and navigate to [http://127.0.0.1:8000](http://127.0.0.1:8000)
 
-## 📊 How It Works
+## How It Works
 
-![RAG Architecture](https://user-images.githubusercontent.com/your-username/your-repo/raw/main/docs/images/architecture.png)
+1. **Load JSON Knowledge Base**: The system loads FAQ data from a JSON file
+2. **Create Embeddings**: Each FAQ is converted into a vector embedding
+3. **Build Vector Index**: Embeddings are stored in a vector database
+4. **User Queries**: When a user asks a question, it's converted to an embedding
+5. **Retrieve Similar FAQs**: The system finds the most similar FAQs
+6. **Generate Response**: An LLM uses the retrieved FAQs to generate a helpful answer
 
-1. **Upload Documents**: The system extracts text from your PDFs and text files
-2. **Create Chunks**: Documents are split into manageable pieces
-3. **Generate Embeddings**: Each chunk is converted into a vector embedding
-4. **Build Index**: Embeddings are stored in a FAISS vector database
-5. **Answer Questions**: The system retrieves relevant context and generates answers
+## Configuration
 
-## 🔧 Configuration
+All configuration is managed through environment variables or the `config.py` file:
 
-Adjust the following settings in your `.env` file:
+| Variable | Description | Default |
+|----------|-------------|---------|
+| KNOWLEDGE_SOURCE | Path to the JSON knowledge base | faqs.json |
+| EMBEDDING_MODEL | HuggingFace embedding model | all-MiniLM-L6-v2 |
+| LLM_MODEL | HuggingFace LLM model | google/flan-t5-small |
+| TEMPERATURE | Temperature for LLM generation | 0.1 |
+| CHUNK_SIZE | Size of text chunks | 500 |
+| CHUNK_OVERLAP | Overlap between chunks | 50 |
+| TOP_K_RESULTS | Number of similar documents to retrieve | 3 |
+| API_HOST | Host to bind the API server | 0.0.0.0 |
+| API_PORT | Port for the API server | 8000 |
+| SUPPORT_CONTACT | Support email address | support@example.com |
+| SUPPORT_PHONE | Support phone number | 1-800-123-4567 |
 
+## JSON Knowledge Base Format
+
+The knowledge base is a JSON file containing an array of question-answer pairs:
+
+```json
+[
+  {
+    "question": "How do I reset my password?",
+    "answer": "Go to Account Settings and click on 'Reset Password'."
+  },
+  {
+    "question": "What payment methods do you accept?",
+    "answer": "We accept Visa, MasterCard, PayPal, and Apple Pay."
+  }
+]
 ```
-HUGGINGFACEHUB_API_TOKEN=your_token_here
-DEFAULT_CHUNK_SIZE=500
-DEFAULT_CHUNK_OVERLAP=50
-DEFAULT_EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
-DEFAULT_LLM_MODEL=google/flan-t5-large
-```
 
-## 🧩 Project Structure
+## Project Structure
 
 ```
 customer-support-bot/
-├── app.py                  # Main application
+├── app.py                  # FastAPI application
+├── config.py               # Configuration settings
 ├── requirements.txt        # Dependencies
+├── faqs.json               # JSON knowledge base
 ├── src/                    # Source code
-│   ├── document_loader.py  # Document processing
 │   ├── embeddings.py       # Text embedding
-│   ├── vector_store.py     # FAISS vector storage
+│   ├── vector_store.py     # Vector storage
 │   └── qa_chain.py         # Question answering chain
 ├── utils/                  # Utilities
+│   ├── json_loader.py      # JSON document loader
 │   └── text_processing.py  # Text splitting functions
+├── static/                 # Static files
+│   └── css/                # CSS styles
+│       └── styles.css      # Custom styles
 └── templates/              # Web interface
-    └── index.html          # Main template
+    └── index.html          # Chat UI template
 ```
 
-## 📚 Use Cases
+## Use Cases
 
-- **Technical Support**: Answer customer questions about your product
-- **Knowledge Base**: Make internal documentation searchable
-- **Training**: Help new employees quickly find information
-- **FAQ Automation**: Automatically handle common questions
+- **Customer Support**: Answer common customer questions automatically
+- **Internal Knowledge Base**: Make company FAQs searchable
+- **Training**: Help new employees find information quickly
+- **Documentation**: Make product documentation accessible through chat
 
-## 🤝 Contributing
+## Customization
+
+### Adding New FAQs
+
+Simply add new entries to the `faqs.json` file:
+
+```json
+{
+  "question": "Your new question here?",
+  "answer": "The detailed answer to the question."
+}
+```
+
+### Using a Different Embedding Model
+
+Change the `EMBEDDING_MODEL` in `config.py` to use a different HuggingFace embedding model.
+
+### Using a Different LLM
+
+Change the `LLM_MODEL` in `config.py` to use a different HuggingFace model.
+
+## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-## 📜 License
+## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - LangChain for the RAG framework
-- FAISS for efficient vector similarity search
 - HuggingFace for providing access to large language models
 - The open-source AI community

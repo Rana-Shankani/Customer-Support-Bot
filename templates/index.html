@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Support Bot</title>
+    <!-- Preload critical CSS -->
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" as="style">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+    <!-- Defer non-critical CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css"
+        media="print" onload="this.media='all'">
+    <noscript>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    </noscript>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <style>
+        body {
+            background-color: #111827;
+            color: #e5e7eb;
+        }
+
+        .chat-container {
+            height: calc(100vh - 200px);
+            max-height: 600px;
+            background-color: #1f2937;
+            border: 1px solid #374151;
+        }
+
+        .messages-container {
+            height: calc(100% - 70px);
+            overflow-y: auto;
+            scrollbar-color: #4b5563 #1f2937;
+        }
+
+        .message {
+            max-width: 80%;
+            word-wrap: break-word;
+            margin-bottom: 10px;
+        }
+
+        .user-message {
+            background-color: #3b82f6;
+            color: white;
+            border-radius: 18px 18px 0 18px;
+        }
+
+        .bot-message {
+            background-color: #374151;
+            color: #e5e7eb;
+            border-radius: 18px 18px 18px 0;
+        }
+
+        .typing-indicator-container {
+            display: flex;
+            align-items: center;
+        }
+
+        .typing-indicator {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+        }
+
+        .typing-indicator span {
+            height: 8px;
+            width: 8px;
+            margin: 0 2px;
+            background-color: #9ca3af;
+            display: block;
+            border-radius: 50%;
+            opacity: 0.4;
+        }
+
+        .typing-indicator span:nth-of-type(1) {
+            animation: 1s typing-indicator ease-in-out infinite;
+        }
+
+        .typing-indicator span:nth-of-type(2) {
+            animation: 1s typing-indicator ease-in-out 0.33s infinite;
+        }
+
+        .typing-indicator span:nth-of-type(3) {
+            animation: 1s typing-indicator ease-in-out 0.66s infinite;
+        }
+
+        @keyframes typing-indicator {
+            0% {
+                opacity: 0.4;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0.4;
+            }
+        }
+
+        .input-area {
+            background-color: #111827;
+            border-top: 1px solid #374151;
+        }
+
+        .input-field {
+            background-color: #1f2937;
+            color: #e5e7eb;
+            border-color: #4b5563;
+        }
+
+        .input-field:focus {
+            border-color: #3b82f6;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+        }
+
+        .send-button {
+            background-color: #3b82f6;
+        }
+
+        .send-button:hover {
+            background-color: #2563eb;
+        }
+
+        .header {
+            color: #3b82f6;
+        }
+
+        .sub-header {
+            color: #9ca3af;
+        }
+
+        .footer {
+            color: #6b7280;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-900">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl font-bold header">Customer Support Bot</h1>
+            <p class="sub-header mt-2">Ask me anything about our products and services</p>
+        </header>
+
+        <div class="rounded-lg shadow-lg overflow-hidden chat-container">
+            <div class="messages-container p-4" id="chat-messages">
+                <div class="flex mb-4">
+                    <div class="message bot-message p-3 ml-2">
+                        <p>Hi there! I'm your customer support assistant. How can I help you today?</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-area p-4">
+                <form id="chat-form" class="flex">
+                    <input type="text" id="user-input"
+                        class="input-field flex-grow rounded-l-lg border border-gray-600 p-3 focus:ring-2 focus:ring-blue-500"
+                        placeholder="Type your message here...">
+                    <button type="submit"
+                        class="send-button text-white p-3 rounded-r-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <footer class="mt-8 text-center footer text-sm">
+            <p>Powered by RAG Technology - Customer Support Bot</p>
+        </footer>
+    </div>
+
+    <script defer>
+        document.addEventListener('DOMContentLoaded', function () {
+            const chatForm = document.getElementById('chat-form');
+            const userInput = document.getElementById('user-input');
+            const chatMessages = document.getElementById('chat-messages');
+
+            // Add local session cache
+            const messageCache = {};
+
+            chatForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const message = userInput.value.trim();
+                if (!message) return;
+
+                // Add user message to chat
+                addMessage(message, 'user');
+                userInput.value = '';
+
+                // Check cache first
+                const cacheKey = message.toLowerCase();
+                if (messageCache[cacheKey]) {
+                    console.log('Using cached response');
+                    addMessage(messageCache[cacheKey], 'bot');
+                    return;
+                }
+
+                // Show typing indicator
+                const typingIndicator = addTypingIndicator();
+
+                // Send message to API
+                fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ question: message })
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Remove typing indicator
+                        typingIndicator.remove();
+
+                        // Cache the response
+                        messageCache[cacheKey] = data.answer;
+
+                        // Add bot response
+                        addMessage(data.answer, 'bot');
+                    })
+                    .catch(error => {
+                        // Remove typing indicator
+                        typingIndicator.remove();
+
+                        // Add error message
+                        addMessage('Sorry, there was an error processing your request. Please try again later.', 'bot');
+                        console.error('Error:', error);
+                    });
+            });
+
+            function addMessage(text, sender) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'flex mb-4';
+
+                const messageContent = document.createElement('div');
+                messageContent.className = `message ${sender}-message p-3 ${sender === 'user' ? 'ml-auto mr-2' : 'ml-2'}`;
+
+                const messageParagraph = document.createElement('p');
+                messageParagraph.textContent = text;
+
+                messageContent.appendChild(messageParagraph);
+                messageDiv.appendChild(messageContent);
+                chatMessages.appendChild(messageDiv);
+
+                // Scroll to bottom
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            function addTypingIndicator() {
+                const indicatorDiv = document.createElement('div');
+                indicatorDiv.className = 'flex mb-4 typing-indicator-container';
+
+                const indicatorContent = document.createElement('div');
+                indicatorContent.className = 'message bot-message p-3 ml-2';
+
+                const typingIndicator = document.createElement('div');
+                typingIndicator.className = 'typing-indicator';
+                typingIndicator.innerHTML = '<span></span><span></span><span></span>';
+
+                indicatorContent.appendChild(typingIndicator);
+                indicatorDiv.appendChild(indicatorContent);
+                chatMessages.appendChild(indicatorDiv);
+
+                // Scroll to the typing indicator
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                return indicatorDiv;
+            }
+
+            // Pre-warm the API by sending a background request (optional)
+            setTimeout(() => {
+                console.log('Pre-warming API connection...');
+                fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ question: 'hello' })
+                }).catch(err => console.log('Prewarm request sent'));
+            }, 3000);
+        });
+    </script>
+</body>
+
+</html>
